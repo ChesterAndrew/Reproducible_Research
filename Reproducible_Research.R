@@ -1,3 +1,4 @@
+
 # load my librarys
 library(ggplot2)
 library(dplyr)
@@ -28,7 +29,7 @@ View(activity)
   MedianStepsPerDay <- median(stepsDay$steps)
   MedianStepsPerDay
 
-###   What is the average daily activity pattern? ###
+###   What is the average daily activity pattern? ### Q4
   
   ### Variable with my Data SPT = Steps Pattern in Time
   SPT <- aggregate(steps~interval,data=activity,FUN=mean,na.action=na.omit)
@@ -43,7 +44,7 @@ View(activity)
   MISteps <- SPT[which.max(SPT$steps),]$interval
   MISteps  
   
-###   Imputing missing values   ###
+###   Imputing missing values   ### Q5
   ###Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with \color{red}{\verb|NA|}NAs)
   
   TMValues <- sum(is.na(activity$steps))
@@ -68,7 +69,7 @@ View(activity)
   mean(SPDNM$Steps)
   median(SPDNM$Steps)
 
-###  Are there differences in activity patterns between weekdays and weekends?
+###  Are there differences in activity patterns between weekdays and weekends? Q6
   
   ### Create variable with date in correct format
     activityNoMissingData$RealDate <- as.Date(activityNoMissingData$date, format = "%Y-%m-%d")
@@ -77,8 +78,8 @@ View(activity)
     activityNoMissingData$weekday <- weekdays(activityNoMissingData$RealDate)
     head(activityNoMissingData)
   ### create a new variable indicating weekday or weekend
-    activityNoMissingData$DayType <- ifelse(activityNoMissingData$weekday=='Saturday' | head(activityNoMissingData)$weekday=='Sunday', 'weekend','weekday')
-  ### see first 10 values
+    activityNoMissingData$DayType <- ifelse(activityNoMissingData$weekday=='Saturday' | activityNoMissingData$weekday=='Sunday', 'weekend','weekday')
+  ### View and check our data
     head(activityNoMissingData)
     activityNoMissingData
   ###Make a panel plot containing a time series plot (i.e. \color{red}{\verb|type = "l"|}type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis)  

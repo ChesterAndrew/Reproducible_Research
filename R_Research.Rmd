@@ -1,0 +1,203 @@
+---
+title: "Reproducible Research Course Project 1"
+author: "Chester Sellers"
+date: "5/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Reproducible Research Course Project 1
+
+## load my librarys
+
+```{r }
+library(ggplot2)
+library(dplyr)
+
+```
+
+## Loading and preprocessing the data ### Q1
+
+```{r }
+activity <- read.csv("C:/Users/casel/Desktop/Coursera/Reproducible_Research/repdata_data_activity/activity.csv")
+```
+
+## View our Data
+```{r }
+View(activity)
+
+```
+
+## View a portion of data and its structure###
+ ```{r }
+  head(activity)
+```
+ 
+## Check basic statistics of the data ###
+ ```{r }
+  summary(activity)
+ 
+```  
+## Check the column names
+ ```{r }
+  names(activity)
+```
+## basic pairs plot not really necesary
+```{r }
+  pairs(activity) 
+```    
+## What is mean total number of steps taken per day?###  
+```{r } 
+stepsDay <- aggregate(steps ~ date, activity, sum, na.rm=TRUE)
+``` 
+ 
+## View a portion of data and its structure###
+```{r }
+  head(stepsDay)
+```
+
+## Histogram of the total number of steps taken each day ## Q2
+```{r }  
+  g <- ggplot(stepsDay, aes(steps))
+  g+geom_histogram(boundary=0, binwidth=2000, col="black",fill="blue")+ggtitle("Histogram Steps per Day")+xlab("Steps")+ylab("Frequency")
+```
+
+
+## Mean and Median of the total number of steps taken per day ## Q3
+
+## Get the Mean of steps per day
+```{r }
+  MeanStepsPerDay <- mean(stepsDay$steps)
+```
+## Result of Mean
+```{r }
+  MeanStepsPerDay
+```
+## Get the Median of steps per day
+```{r }
+  MedianStepsPerDay <- median(stepsDay$steps)
+```  
+## Result of Median
+```{r }
+  MedianStepsPerDay
+```
+# What is the average daily activity pattern? ## Q4
+
+## Variable with my Data SPT = Steps Pattern in Time
+```{r } 
+  SPT <- aggregate(steps~interval,data=activity,FUN=mean,na.action=na.omit)
+```
+## Plot the result of Average Steps per Time Interval
+```{r } 
+  g1 <- ggplot(SPT, aes(interval, steps))
+  g1+geom_line(col="blue")+ggtitle("Average Steps per Time Interval")+xlab("Intervals")+ylab("Steps")+theme(plot.title = element_text(face="bold", size=12))
+```
+
+## Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+## Variable with my Data MISteps = Maximum Interval Steps
+```{r } 
+  MISteps <- SPT[which.max(SPT$steps),]$interval
+  MISteps  
+```
+
+#   Imputing missing values   ## Q5
+
+## Calculate and report the total number of missing values in the dataset 
+```{r }
+  TMValues <- sum(is.na(activity$steps))
+  TMValues
+```
+  
+## Devise a strategy for filling in all of the missing values in the dataset.   
+```{r }  
+  activity$fillSteps <- ifelse(is.na(activity$steps), round(SPT$steps[match(activity$interval, SPT$interval)],0), activity$steps)
+```
+### Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r }
+  activityNoMissingData <- data.frame(steps=activity$fillSteps, interval=activity$interval, date=activity$date)
+```
+### Cheching top and bottom row of our data
+```{r }
+  head(activityNoMissingData)  
+  tail(activityNoMissingData)
+``` 
+### Make a histogram of the total number of steps taken each day and calculate and report the mean and median total number of steps taken per day.
+```{r }
+  SPDNM <- aggregate(activityNoMissingData$steps, list(activityNoMissingData$date), FUN=sum)
+``` 
+### Checking my data and column names
+```{r }  
+  head(SPDNM)
+``` 
+### Assing new header column names
+```{r }
+  colnames(SPDNM) <- c("Date", "Steps")
+```
+### Checking my data and column names  
+```{r }
+  head(SPDNM)
+``` 
+### Make a histogram
+```{r } 
+  g3 <- ggplot(SPDNM, aes(Steps))
+  g3+geom_histogram(boundary=0, binwidth=2500, col="black", fill="blue")+ggtitle("Histogram Steps per Day")+xlab("Steps")+ylab("Frequency")
+``` 
+  
+## Calculate and report the mean and median total number of steps taken per day.
+ 
+### Result of Mean
+```{r }
+  mean(SPDNM$Steps)
+```
+### Result of Median
+```{r }  
+  median(SPDNM$Steps)
+```
+
+###  Are there differences in activity patterns between weekdays and weekends? Q6
+  
+### Create variable with date in correct format
+```{r } 
+    activityNoMissingData$RealDate <- as.Date(activityNoMissingData$date, format = "%Y-%m-%d")
+    head(activityNoMissingData)
+ ```   
+### Create a variable with weekdays name
+```{r } 
+    activityNoMissingData$weekday <- weekdays(activityNoMissingData$RealDate)
+    head(activityNoMissingData)
+```    
+### create a new variable indicating weekday or weekend
+```{r } 
+      activityNoMissingData$DayType <- ifelse(activityNoMissingData$weekday=='Saturday' | activityNoMissingData$weekday=='Sunday', 'weekend','weekday')
+```    
+### View and check our data
+```{r } 
+    head(activityNoMissingData)
+    tail(activityNoMissingData)
+```
+    
+### Make a panel plot containing a time series plot, type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis)  
+  
+### Create variable with steps per time across week days // weekend days
+```{r } 
+    SPTDT <- aggregate(steps~interval+DayType,data=activityNoMissingData,FUN=mean)
+```
+### Time variable
+```{r } 
+    SPTDT$time <- SPTDT$interval
+```
+### draw the line plots
+```{r } 
+    g4 <- ggplot(SPTDT, aes(time, steps))
+    g4+geom_line(col="blue")+ggtitle("Average Steps per Time Interval (Weekdays / Weekends Comparison)")+xlab("Time")+ylab("Steps")+facet_grid(DayType ~ .)
+```
+
+
+
+
+
+
+
